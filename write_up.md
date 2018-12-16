@@ -57,46 +57,70 @@ Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
 
 We can create the following transformation matrices about each joint. T0_1 means from joint 0 to joint 1
-T0_1 = Matrix([[             cos(q1),            -sin(q1),            0,              a0],  
-       	       [ sin(q1)*cos(alpha0), cos(q1)*cos(alpha0), -sin(alpha0), -sin(alpha0)*d1],
-	       [ sin(q1)*sin(alpha0), cos(q1)*sin(alpha0),  cos(alpha0),  cos(alpha0)*d1],
-               [                   0,                   0,            0,               1]])
+
+	T0_1 = Matrix([[             cos(q1),            -sin(q1),            0,              a0],  
+        	       [ sin(q1)*cos(alpha0), cos(q1)*cos(alpha0), -sin(alpha0), -sin(alpha0)*d1],
+               	       [ sin(q1)*sin(alpha0), cos(q1)*sin(alpha0),  cos(alpha0),  cos(alpha0)*d1],
+               	       [                   0,                   0,            0,               1]])
+	T0_1 = T0_1.subs(s)
 
 	T1_2 = Matrix([[             cos(q2),            -sin(q2),            0,              a1],
                        [ sin(q2)*cos(alpha1), cos(q2)*cos(alpha1), -sin(alpha1), -sin(alpha1)*d2],
                        [ sin(q2)*sin(alpha1), cos(q2)*sin(alpha1),  cos(alpha1),  cos(alpha1)*d2],
                        [                   0,                   0,            0,               1]])
+	T1_2 = T1_2.subs(s)
 
 	T2_3 = Matrix([[             cos(q3),            -sin(q3),            0,              a2],
                        [ sin(q3)*cos(alpha2), cos(q3)*cos(alpha2), -sin(alpha2), -sin(alpha2)*d3],
                        [ sin(q3)*sin(alpha2), cos(q3)*sin(alpha2),  cos(alpha2),  cos(alpha2)*d3],
                        [                   0,                   0,            0,               1]])
+	T2_3 = T2_3.subs(s)
 
 	T3_4 = Matrix([[             cos(q4),            -sin(q4),            0,              a3],
                        [ sin(q4)*cos(alpha3), cos(q4)*cos(alpha3), -sin(alpha3), -sin(alpha3)*d4],
                        [ sin(q4)*sin(alpha3), cos(q4)*sin(alpha3),  cos(alpha3),  cos(alpha3)*d4],
                        [                   0,                   0,            0,               1]])
+	T3_4 = T3_4.subs(s)
 
 	T4_5 = Matrix([[             cos(q5),            -sin(q5),            0,              a4],
                        [ sin(q5)*cos(alpha4), cos(q5)*cos(alpha4), -sin(alpha4), -sin(alpha4)*d5],
                        [ sin(q5)*sin(alpha4), cos(q5)*sin(alpha4),  cos(alpha4),  cos(alpha4)*d5],
                        [                   0,                   0,            0,               1]])
+	T4_5 = T4_5.subs(s)
 
 	T5_6 = Matrix([[             cos(q6),            -sin(q6),            0,              a5],
                        [ sin(q6)*cos(alpha5), cos(q6)*cos(alpha5), -sin(alpha5), -sin(alpha5)*d6],
                        [ sin(q6)*sin(alpha5), cos(q6)*sin(alpha5),  cos(alpha5),  cos(alpha5)*d6],
                        [                   0,                   0,            0,               1]])
+	T5_6 = T5_6.subs(s)
 
 	T6_G = Matrix([[             cos(q7),            -sin(q7),            0,              a6],
                        [ sin(q7)*cos(alpha6), cos(q7)*cos(alpha6), -sin(alpha6), -sin(alpha6)*d7],
                        [ sin(q7)*sin(alpha6), cos(q7)*sin(alpha6),  cos(alpha6),  cos(alpha6)*d7],
                        [                   0,                   0,            0,               1]])
+	T6_G = T6_G.subs(s)
 
+Next, we can derive the generalized homogeneous transform between base_link and gripper_link. The base_link frame can be seen as derived from gripper_link frame at zero position following a series of intrinsic transforms as shown below:
 
+![alt text][image1]
+
+Therefore, we have derived the transform between base_link and gripper_link at its zero position:
+Rcorr = R_x(pi/2) * R_y(pi/2) * R_z(pi/2)
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
 
-And here's where you can draw out and show your math for the derivation of your theta angles. 
+To derive the theta angles, we can divide the problem into inverse position, and inverse orientation subproblems
+
+First, we can solve the inverse position problem by calculating the wrist center position.
+We have previously calculated the homogeneous transform between the base_link and the gripper_link at its zero position. And since the gripper_link rotates in the simulation, we can obtain the rotation frame from the roll,pitch,yaw angles given by simulation.
+Therefore, the total transform between the gripper_link frame and base_link frame is given as:
+Rrpy = R_z(yaw) * R_y(pitch) * R_x(roll) * R_corr
+
+According to lecture note, if we know a point (P)'s position in frame B (relative to B0), B0's position relative to frame A (A0), and the transfrom from B to A (Ra_b), we can derive that point's position in frame A (relative to A0), as shown in the following formula:
+Ar(P/A0) = Ra_b * Br(P/B0) + Ar(B0/A0)
+It can also be expressed as a matrix:
+
+
 
 ![alt text][image2]
 
