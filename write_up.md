@@ -57,11 +57,10 @@ Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
 
 We can create the following transformation matrices about each joint. T0_1 means from joint 0 to joint 1
-
-	T0_1 = Matrix([[             cos(q1),            -sin(q1),            0,              a0],  
-        	       [ sin(q1)*cos(alpha0), cos(q1)*cos(alpha0), -sin(alpha0), -sin(alpha0)*d1],
-               	       [ sin(q1)*sin(alpha0), cos(q1)*sin(alpha0),  cos(alpha0),  cos(alpha0)*d1],
-               	       [                   0,                   0,            0,               1]])
+T0_1 = Matrix([[             cos(q1),            -sin(q1),            0,              a0],  
+       	       [ sin(q1)*cos(alpha0), cos(q1)*cos(alpha0), -sin(alpha0), -sin(alpha0)*d1],
+	       [ sin(q1)*sin(alpha0), cos(q1)*sin(alpha0),  cos(alpha0),  cos(alpha0)*d1],
+               [                   0,                   0,            0,               1]])
 
 	T1_2 = Matrix([[             cos(q2),            -sin(q2),            0,              a1],
                        [ sin(q2)*cos(alpha1), cos(q2)*cos(alpha1), -sin(alpha1), -sin(alpha1)*d2],
