@@ -76,38 +76,38 @@ def handle_calculate_IK(req):
                        [                   0,                   0,            0,               1]])
 	T2_3 = T2_3.subs(s)
 
-	T3_4 = Matrix([[             cos(q4),            -sin(q4),            0,              a3],
-                       [ sin(q4)*cos(alpha3), cos(q4)*cos(alpha3), -sin(alpha3), -sin(alpha3)*d4],
-                       [ sin(q4)*sin(alpha3), cos(q4)*sin(alpha3),  cos(alpha3),  cos(alpha3)*d4],
-                       [                   0,                   0,            0,               1]])
-	T3_4 = T3_4.subs(s)
+	#T3_4 = Matrix([[             cos(q4),            -sin(q4),            0,              a3],
+        #               [ sin(q4)*cos(alpha3), cos(q4)*cos(alpha3), -sin(alpha3), -sin(alpha3)*d4],
+        #               [ sin(q4)*sin(alpha3), cos(q4)*sin(alpha3),  cos(alpha3),  cos(alpha3)*d4],
+        #               [                   0,                   0,            0,               1]])
+	#T3_4 = T3_4.subs(s)
 
-	T4_5 = Matrix([[             cos(q5),            -sin(q5),            0,              a4],
-                       [ sin(q5)*cos(alpha4), cos(q5)*cos(alpha4), -sin(alpha4), -sin(alpha4)*d5],
-                       [ sin(q5)*sin(alpha4), cos(q5)*sin(alpha4),  cos(alpha4),  cos(alpha4)*d5],
-                       [                   0,                   0,            0,               1]])
-	T4_5 = T4_5.subs(s)
+	#T4_5 = Matrix([[             cos(q5),            -sin(q5),            0,              a4],
+        #               [ sin(q5)*cos(alpha4), cos(q5)*cos(alpha4), -sin(alpha4), -sin(alpha4)*d5],
+        #               [ sin(q5)*sin(alpha4), cos(q5)*sin(alpha4),  cos(alpha4),  cos(alpha4)*d5],
+        #               [                   0,                   0,            0,               1]])
+	#T4_5 = T4_5.subs(s)
 
-	T5_6 = Matrix([[             cos(q6),            -sin(q6),            0,              a5],
-                       [ sin(q6)*cos(alpha5), cos(q6)*cos(alpha5), -sin(alpha5), -sin(alpha5)*d6],
-                       [ sin(q6)*sin(alpha5), cos(q6)*sin(alpha5),  cos(alpha5),  cos(alpha5)*d6],
-                       [                   0,                   0,            0,               1]])
-	T5_6 = T5_6.subs(s)
+	#T5_6 = Matrix([[             cos(q6),            -sin(q6),            0,              a5],
+        #               [ sin(q6)*cos(alpha5), cos(q6)*cos(alpha5), -sin(alpha5), -sin(alpha5)*d6],
+        #               [ sin(q6)*sin(alpha5), cos(q6)*sin(alpha5),  cos(alpha5),  cos(alpha5)*d6],
+        #               [                   0,                   0,            0,               1]])
+	#T5_6 = T5_6.subs(s)
 
-	T6_G = Matrix([[             cos(q7),            -sin(q7),            0,              a6],
-                       [ sin(q7)*cos(alpha6), cos(q7)*cos(alpha6), -sin(alpha6), -sin(alpha6)*d7],
-                       [ sin(q7)*sin(alpha6), cos(q7)*sin(alpha6),  cos(alpha6),  cos(alpha6)*d7],
-                       [                   0,                   0,            0,               1]])
-	T6_G = T6_G.subs(s)
+	#T6_G = Matrix([[             cos(q7),            -sin(q7),            0,              a6],
+        #               [ sin(q7)*cos(alpha6), cos(q7)*cos(alpha6), -sin(alpha6), -sin(alpha6)*d7],
+        #               [ sin(q7)*sin(alpha6), cos(q7)*sin(alpha6),  cos(alpha6),  cos(alpha6)*d7],
+        #               [                   0,                   0,            0,               1]])
+	#T6_G = T6_G.subs(s)
 
 	# Create individual transformation matrices
         T0_3 = T0_1 * T1_2 * T2_3
  	#T0_G = simplify(T0_1 * T1_2 * T2_3 * T3_4 *T4_5 * T5_6 * T6_G)	
- 	T0_G = T0_3 * T3_4 *T4_5 * T5_6 * T6_G	
+ 	#T0_G = T0_3 * T3_4 *T4_5 * T5_6 * T6_G	
 	
 	# Extract rotation matrices from the transformation matrices
 	    
-        R0_G = T0_G[0:3,0:3]
+        #R0_G = T0_G[0:3,0:3]
         R0_3 = T0_3[0:3,0:3]
 
         ## Improve performance by moving out calculations outside loop ##
@@ -118,8 +118,15 @@ def handle_calculate_IK(req):
 	#R_zcorr = rot_z(pi/2)
 
         # intrinsic rotation from DH frame to gazebo frame at 0 angles
-        R_corr = R_z.subs(y,radians(180)) * R_y.subs(p,radians(-90))
+        R_corr = R_x.subs(r,pi/2) * R_y.subs(p,pi/2) * R_z.subs(y,pi/2)
 	
+ 	#tol = 0.05 # tolerance
+        #last_px = 0
+	#last_py = 0
+        #last_pz = 0
+        #last_r = 0
+        #last_p = 0
+        #last_y = 0
 
         # Initialize service response
         joint_trajectory_list = []
@@ -130,21 +137,33 @@ def handle_calculate_IK(req):
 	    # Extract end-effector position and orientation from request
 	    # px,py,pz = end-effector position
 	    # roll, pitch, yaw = end-effector orientation
-            px = req.poses[x].position.x
-            py = req.poses[x].position.y
+            px = req.poses[x].position.x 
+            py = req.poses[x].position.y 
             pz = req.poses[x].position.z
+
 
             (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(
                 [req.poses[x].orientation.x, req.poses[x].orientation.y,
                     req.poses[x].orientation.z, req.poses[x].orientation.w])
-
+	
+	    #if ((abs(last_px - px) < tol) and (abs(last_py - py) < tol) and (abs(last_pz - pz) < tol) and (abs(last_r - roll) < tol) and (abs(last_p - pitch) < tol) and (abs(last_y - yaw) < tol)):
+	    #	continue
+            #else: 
+            #    last_px = px
+	    #    last_py = py
+            #    last_pz = pz
+            #    last_r = roll 
+            #    last_p = pitch
+            #    last_y = yaw
             ### Your IK code here
-      
+            
             # rotation from gazebo frame to RPY frame as given by simulation 
             #Rrpy = rot_z(yaw) * rot_y(pitch) * rot_x(roll) * R_corr
-            Rrpy = R_z * R_y * R_x * R_corr
-            Rrpy = Rrpy.subs({'r': roll, 'p':pitch, 'y': yaw})
-		
+            Rrpy = R_z.subs(y,yaw) * R_y.subs(p,pitch) * R_x.subs(r,roll) # * R_corr
+            Rrpy = Rrpy * R_corr
+            #Rrpy = Rrpy.subs({'r': roll, 'p':pitch, 'y': yaw})
+            #Rrpy = R_z * R_y * R_x * R_corr
+	        
 	    # Calculate joint angles using Geometric IK method
 	    
             # First, solve for the Wrist Center position (relative to the base frame)
@@ -155,7 +174,7 @@ def handle_calculate_IK(req):
             # The above matrix form is also expressed as Ar(P/A0) = Ta_b * Br(P/B0)
             # Ar(P/A0) = Ta_b * Tb_c * Cr(P/C0) # see lesson12.11 Composition of Homogeneous Transforms
 	    # therefore, we know the WC pos in gripper frame, we know the T_total from base frame to gripper frame
-        
+            
             # 0. compute theta1  	    
             #T_0gripper = Rrpy.row_join(Matrix([[px],[py],[pz]]))
             #print(T_0gripper)
@@ -168,8 +187,8 @@ def handle_calculate_IK(req):
             EE = Matrix([[px],[py],[pz]])
             x_wc, y_wc, z_wc =  EE - (0.303) * Rrpy[:,2] 
             theta1 = atan2(y_wc,x_wc)
-    
-          
+            
+            
             # 1. compute theta2, theta3 based on the position of WC 
             # A = distance between joint 3 and wrist center. 
             #z_disp = a3.evalf(subs=s)
@@ -177,9 +196,15 @@ def handle_calculate_IK(req):
              
             # A,B,C 
             
-            side_a = 1.501
-            side_b = sqrt(pow((sqrt(x_wc * x_wc + y_wc * y_wc) - 0.35), 2) + pow((z_wc - 0.75),2))
+            side_a = 1.5008717
+    	    side_a2 = 2.252916 
+            #r = sqrt(x_wc * x_wc + y_wc * y_wc) - 0.35
+            #l = z_wc - 0.75
+            #side_b2 = pow(r, 2) + pow(l,2)
+            side_b2 = pow((sqrt(x_wc * x_wc + y_wc * y_wc) - 0.35), 2) + pow((z_wc - 0.75),2)
+            side_b = sqrt(side_b2)
             side_c = 1.25  
+            side_c2 = 1.5625
             #r = sqrt(x_wc * x_wc + y_wc * y_wc) -a1.evalf(subs=s)
             #l = z_wc - d1.evalf(subs=s)
             #B_2 = pow(r,2) + pow(l,2)
@@ -193,48 +218,63 @@ def handle_calculate_IK(req):
             # B^2 = A^2 + C^2 - 2ACcosb		
             #b = acos((A_2 + C_2 - B_2)/(2*sqrt(A_2)*C))		
             #a = acos((B_2 + C_2 - A_2)/(2*sqrt(B_2)*C))
-            angle_a = acos((side_b * side_b + side_c * side_c - side_a * side_a)/(2 * side_b * side_c))
-            angle_b = acos((side_a * side_a + side_c * side_c - side_b * side_b)/(2 * side_a * side_c))
+            #angle_a = acos((side_b * side_b + side_c * side_c - side_a * side_a)/(2 * side_b * side_c))
+            #angle_b = acos((side_a * side_a + side_c * side_c - side_b * side_b)/(2 * side_a * side_c))
+            
+	    angle_a = acos((side_b2 + side_c2 - side_a2)/(2 * side_b * side_c))
+   	    angle_b = acos((side_a2 + side_c2 - side_b2)/(2 * side_a * side_c))
+            
             
             # gamma angle
             #gamma = atan2(l,r)
             
-            #theta2 = pi/2 - a - gamma
+            #theta2 = pi/2 - a - gamma  
+	    # constraint of theta2 (-45,85)
+            
+            if (abs(angle_a) > pi/2):
+	        angle_a = (angle_a + pi/2)%pi - pi/2 # keep angle_a in (-pi/2, pi/2), which is fine for cosine 
+            
             theta2 = pi/2 - angle_a - atan2(z_wc - 0.75, sqrt(x_wc * x_wc + y_wc * y_wc) - 0.35) 
+            #theta2 = pi/2 - angle_a - atan2(l,r) 
+            
             # phi
             # Note that wrist center postion when joint3 is at 0 angle has a drop in z axis
             #phi = atan2(-a3.evalf(subs=s),d4.evalf(subs=s))
-            #theta3 = pi/2 -b -phi 
-            theta3 = pi/2 - angle_b - 0.036 # 0.036 accounts for sag in link4 of -0.054m
-    
-           
+            
+	    #theta3 = pi/2 -b -phi 
+	    # constraint of theta3 (-210,64)
+	    if (angle_b < 0):
+            	angle_b = 2*pi + angle_b # keep angle_b in (pi/4, 3pi/2)
+            theta3 = pi/2 - angle_b - 0.03598446 # 0.036 accounts for sag in link4 of -0.054m
+            
+            
             # 2. compute q4, q5, q6 based on the orientation of WC 
                     
             # R0_G = Rrpy		
             E0_3 = R0_3.evalf(subs = {q1:theta1, q2:theta2, q3:theta3})
             E3_G = E0_3.inv(method = "LU") * Rrpy
-
+            
             #print("E0_3 = ",E0_3)
             #print("Rrpy = ",Rrpy)
             #theta4, theta5, theta6 = solve_linear_system_LU(E3_6,[q4,q5,q6])
             #theta4, theta5, theta6 = 0,0,0
-
+            
             theta4 = atan2(E3_G[2,2],-E3_G[0,2]) 
             theta5 = atan2(sqrt(E3_G[0,2] * E3_G[0,2] + E3_G[2,2] * E3_G[2,2]),E3_G[1,2]) 
             theta6 = atan2(-E3_G[1,1],E3_G[1,0]) 
-
-            #if (abs(theta1) > pi):
-            #    theta1 = (theta1 + pi/2)%(2*pi)- pi/2
-            #if (abs(theta2) > pi):
+            
+            if (abs(theta1) > pi): # constraint of theta1 (-185,185)
+            	theta1 = (theta1 + pi)%(2*pi)- pi
+            #if (theta2 < -pi/2): 
             #    theta2 = (theta2 + pi/2)%(2*pi)- pi/2
             #if (abs(theta3) > pi):
             #    theta3 = (theta3 + pi/2)%(2*pi)- pi/2
-            #if (abs(theta4) > pi):
-            #    theta4 = (theta4 + pi/2)%(2*pi)- pi/2
-            #if (abs(theta5) > pi):
-            #    theta5 = (theta5 + pi/2)%(2*pi)- pi/2
-            #if (abs(theta6) > pi):
-            #    theta6 = (theta6 + pi/2)%(2*pi)- pi/2
+            if (abs(theta4) > pi):
+            	theta4 = (theta4 + pi/2)%(2*pi)- pi/2
+            if (abs(theta5) > pi):
+            	theta5 = (theta5 + pi)%(2*pi)- pi # constraint of theta5 (-125,125)
+            if (abs(theta6) > pi):
+            	theta6 = (theta6 + pi/2)%(2*pi)- pi/2
                
             # Populate response for the IK request
             # In the next line replace theta1,theta2...,theta6 by your joint angle variables
