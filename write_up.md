@@ -118,7 +118,7 @@ Ar(P/A0) = Ra_b * Br(P/B0) + Ar(B0/A0)   (see lesson 12.10 Homogeneous Transform
 It can also be expressed as a matrix:
 
    Ar(P/A0)       Ra_b   |  Ar(B0/A0)     Br(P/B0)
- [ --------] = [-----------------------][----------]     
+   --------  =  -----------------------   ----------      
       1          0  0  0 |      1             1
       
 The above matrix form is also expressed as Ar(P/A0) = Ta_b * Br(P/B0)
@@ -127,11 +127,11 @@ Now, frame A is our base_link frame, frame  B is our gripper frame, and P is the
 We know from the simulation of the gripper position [px,py,pz], this is relative to the base_link frame, and Ra_b is Rrpy.
 Therefore, we can construct the following 
 
-   Ar(P/A0)        Rrpy   |  Ar([px,py,pz])  Br(P/B0)
- [ ---------] = [-------------------------][----------]     
+   Ar(P/A0)         Rrpy   |  Ar(px,py,pz)   Br(P/B0)
+   ---------  =  -------------------------  ----------      
       1            0  0  0 |      1             1
  
-We also know the wrist center position relative to the gripper frame : [0, 0, -d7]
+We also know the wrist center position relative to the gripper frame :  (0, 0, -d7)
 Therefore, we can obtain the wrist center position relative to the base_link frame.
 	    
         T_0gripper = Rrpy.row_join(Matrix([[px],[py],[pz]]))
@@ -155,19 +155,37 @@ theta2 = pi/2 - angle_a - angle_gamma (gamma), and gamma can be calculated with 
 r = length of wc cast on x-y plane minus a1
 l = height of wc minus d1
 angle a, b, c can be calculated with consine law
-theta3 = pi/2 - b - angle of wrist center relative to link3 at zero position, this is caused by the drop of -0.054 from O3 to O4
+theta3 = pi/2 - b - angle_phi (angle of wrist center relative to link3 at zero position, this is caused by the drop of -0.054 from O3 to O4)
 
 2. Second, we will solve the inverse orientation subproblem.
 
+By far we know the total transform from base_link to gripper link,  and have calculated theta1-3
+Therefore, we can extract the rotation matrix of R0_G and R0_3, and derive R3_G which contains theta4-6
 
+	R0_G = Rrpy
+	R0_3 = T0_3[0:3,0:3]
+        R0_3 = R0_3.evalf(subs = {q1:theta1, q2:theta2, q3:theta3})
+        R3_G = R0_3.inv(method = "LU") * Rrpy
+	
+According to the euler angles trasformation matrix, we can calculate theta4-6
+
+![alt text][image2]
+
+        theta4 = atan2(E3_G[2,2],-E3_G[0,2]) 
+        theta5 = atan2(sqrt(E3_G[0,2] * E3_G[0,2] + E3_G[2,2] * E3_G[2,2]),E3_G[1,2]) 
+        theta6 = atan2(-E3_G[1,1],E3_G[1,0]) 
 
 ### Project Implementation
 
 #### 1. Fill in the `IK_server.py` file with properly commented python code for calculating Inverse Kinematics based on previously performed Kinematic Analysis. Your code must guide the robot to successfully complete 8/10 pick and place cycles. Briefly discuss the code you implemented and your results. 
 
-
 Here I'll talk about the code, what techniques I used, what worked and why, where the implementation might fail and how I might improve it if I were going to pursue this project further.  
 
+Techniques applied for speeding up the calculations:
+First, I used simpified math for calculating theta1-3, instead of calculating the internal variables which presents better understanding. The initial code are saved in comment but a direct value such as angle gamma and angle phi, cosine laws. This has a slight saving in calculation time and slight benefit for floating point rounding errors
+Second, I used matrix with symbols and dictionary instead of functions for T0_1, T1_2... and R_x, R_y, R_z. This has a slight saving in calculation time. 
+Third, I moved the calculations irrelavant to the for loop outside of for loop. This has a big saving on robot response time in Gazebo
+Fourth, I used a 
 
 And just for fun, another example image:
 ![alt text][image3]
