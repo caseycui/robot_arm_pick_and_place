@@ -118,7 +118,9 @@ Ar(P/A0) = Ra_b * Br(P/B0) + Ar(B0/A0)   (see lesson 12.10 Homogeneous Transform
 It can also be expressed as a matrix:
 
    Ar(P/A0)       Ra_b   |  Ar(B0/A0)     Br(P/B0)
+   
    --------  =  -----------------------   ----------      
+   
       1          0  0  0 |      1             1
       
 The above matrix form is also expressed as Ar(P/A0) = Ta_b * Br(P/B0)
@@ -128,7 +130,9 @@ We know from the simulation of the gripper position [px,py,pz], this is relative
 Therefore, we can construct the following 
 
    Ar(P/A0)         Rrpy   |  Ar(px,py,pz)   Br(P/B0)
+   
    ---------  =  -------------------------  ----------      
+   
       1            0  0  0 |      1             1
  
 We also know the wrist center position relative to the gripper frame :  (0, 0, -d7)
@@ -181,13 +185,15 @@ According to the euler angles trasformation matrix, we can calculate theta4-6
 
 Here I'll talk about the code, what techniques I used, what worked and why, where the implementation might fail and how I might improve it if I were going to pursue this project further.  
 
-Techniques applied for speeding up the calculations:
+Techniques applied for improve performance:
 First, I used simpified math for calculating theta1-3, instead of calculating the internal variables which presents better understanding. The initial code are saved in comment but a direct value such as angle gamma and angle phi, cosine laws. This has a slight saving in calculation time and slight benefit for floating point rounding errors
 Second, I used matrix with symbols and dictionary instead of functions for T0_1, T1_2... and R_x, R_y, R_z. This has a slight saving in calculation time. 
 Third, I moved the calculations irrelavant to the for loop outside of for loop. This has a big saving on robot response time in Gazebo
-Fourth, I used a 
+Fourth, I have applied tricks to keep the theta angles within joint limits according to URDF file, as much as possible. This is a huge performance improvement as it improves accuracy of path planning in multiple ways: it makes the movement flow steady and fast, it saves extra path planning due to truncated angles, it saves loss from truncated angle movements. And from the message stream I see very few of 'joint constraint limit' warnings compared to a lot before this technique is applied. Specifically, for theta2 and theta3, I keep the angles they need to subtract within certain limits so that theta2 and theta3 can stay in the joint limits. And for theta1, theta5, I keep the angles in (-pi,pi) range.
 
-And just for fun, another example image:
+With the above improvements, the robot arm is able to path plan quickly with very few moves and pick up the objects with precision and speed.
+
+Here's an image showing the robot arm in motion:
 ![alt text][image3]
 
 
