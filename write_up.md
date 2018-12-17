@@ -14,14 +14,14 @@
 
 [//]: # (Image References)
 
-[image1]: ./imgs/DH_frames.png
-[image2]: ./imgs/kr210_urdf.png
+[image1]: ./imgs/DH_frames.PNG
+[image2]: ./imgs/kr210_urdf.PNG
 [image3]: ./imgs/homotransform.jpg
-[image4]: ./imgs/Ta_b.png
-[image5]: ./imgs/T0_g.png
+[image4]: ./imgs/Ta_b.PNG
+[image5]: ./imgs/T0_g.PNG
 [image6]: ./imgs/threeD_view_theta.jpg
-[image7]: ./imgs/Euler_angles.png
-[image8]: ./imgs/pick_n_place.png
+[image7]: ./imgs/Euler_angles.PNG
+[image8]: ./imgs/pick_n_place.PNG
 
 
 
