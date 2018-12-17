@@ -17,6 +17,12 @@
 [image1]: ./imgs/misc1.png
 [image2]: ./imgs/misc3.png
 [image3]: ./imgs/misc2.png
+[image4]: ./imgs/misc2.png
+[image5] ./imgs/misc2.png
+[image6] ./imgs/misc2.png
+[image7] ./imgs/misc2.png
+
+
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -118,8 +124,7 @@ Ar(P/A0) = Ra_b * Br(P/B0) + Ar(B0/A0)   (see lesson 12.10 Homogeneous Transform
 It can also be expressed as a matrix:
 
    Ar(P/A0)       Ra_b   |  Ar(B0/A0)     Br(P/B0)
-   
-   --------  =  -----------------------   ----------      
+   _________  =  ____________________     __________
    
       1          0  0  0 |      1             1
       
