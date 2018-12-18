@@ -14,9 +14,16 @@
 
 [//]: # (Image References)
 
-[image1]: ./imgs/misc1.png
-[image2]: ./imgs/misc3.png
-[image3]: ./imgs/misc2.png
+[image1]: ./imgs/DH_frames.PNG
+[image2]: ./imgs/kr210_urdf.PNG
+[image3]: ./imgs/homotransform.jpg
+[image4]: ./imgs/Ta_b.PNG
+[image5]: ./imgs/T0_g.PNG
+[image6]: ./imgs/threeD_view_theta.jpg
+[image7]: ./imgs/Euler_angles.PNG
+[image8]: ./imgs/pick_n_place.PNG
+
+
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -31,16 +38,15 @@ You're reading it!
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
 
-A screenshot of running the forward kinematics demo
+The demo ran very smoothly and relatively fast in terms of robot arm speed. It seems to be picking up all the locations fine except for location 6. I will talk about this again in the result section. 
+
+Now, we will define the DH frames. To simplify the calculations, we choose the DH frames as suggested in the course, with links4-6 share the same origin, aka, the wrist center.
+
 ![alt text][image1]
-
-Next, we will define the DH frames. To simplify the calculations, we choose the DH frames as suggested in the course, with links4-6 share the same origin, aka, the wrist center.
-
-![alt text][image2]
 
 From the kr210.urdf.xacro file, we can find the link parameters according to our chosen DH frames
 
-![alt text][image1]
+![alt text][image2]
 
 And we will fill in the DH table according to the URDF file.
 
@@ -95,7 +101,7 @@ We can create the following transformation matrices about each joint. T0_1 means
 
 Next, we can derive the generalized homogeneous transform between base_link and gripper_link. The base_link frame can be seen as derived from gripper_link frame at zero position following a series of intrinsic transforms as shown below:
 
-![alt text][image1]
+![alt text][image3]
 
 Therefore, we have derived the transform between base_link and gripper_link at its zero position:
 
@@ -103,7 +109,7 @@ Rcorr = R_x(pi/2) * R_y(pi/2) * R_z(pi/2)
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
 
-To derive the theta angles, we can divide the problem into inverse position, and inverse orientation subproblems
+To derive the theta angles, we can divide the problem into inverse position, and inverse orientation subproblems.
 
 1. First, we can solve the inverse position subproblem by calculating the wrist center position.
 We have previously calculated the homogeneous transform between the base_link and the gripper_link at its zero position. And since the gripper_link rotates in the simulation, we can obtain the rotation frame from the roll,pitch,yaw angles given by simulation.
@@ -117,24 +123,16 @@ Ar(P/A0) = Ra_b * Br(P/B0) + Ar(B0/A0)   (see lesson 12.10 Homogeneous Transform
 
 It can also be expressed as a matrix:
 
-   Ar(P/A0)       Ra_b   |  Ar(B0/A0)     Br(P/B0)
-   
-   --------  =  -----------------------   ----------      
-   
-      1          0  0  0 |      1             1
-      
+![alt text][image4]
+  
 The above matrix form is also expressed as Ar(P/A0) = Ta_b * Br(P/B0)
 
 Now, frame A is our base_link frame, frame  B is our gripper frame, and P is the wrist center, A0 is the origin of the base_link frame, B0 is the position of the gripper origin.
 We know from the simulation of the gripper position [px,py,pz], this is relative to the base_link frame, and Ra_b is Rrpy.
 Therefore, we can construct the following 
 
-   Ar(P/A0)         Rrpy   |  Ar(px,py,pz)   Br(P/B0)
-   
-   ---------  =  -------------------------  ----------      
-   
-      1            0  0  0 |      1             1
- 
+![alt text][image5]
+  
 We also know the wrist center position relative to the gripper frame :  (0, 0, -d7)
 Therefore, we can obtain the wrist center position relative to the base_link frame.
 	    
@@ -149,31 +147,31 @@ Since only -d7 is non-zero in the matrix, we can simplify the calculations to th
         EE = Matrix([[px],[py],[pz]])
         x_wc, y_wc, z_wc =  EE - (0.303) * Rrpy[:,2] 
 	
-Now we have the wrist center position in base_link frame, we can calculate theta1 (q1), theta2 (q2), theta3 (q3)	
-Below is a 3D view of the wrist center position determined by theta1, theta2 and theta3
+Now we have the wrist center position in base_link frame, we can calculate theta1 (q1), theta2 (q2), theta3 (q3).	
+Below is a 3D view of the wrist center position determined by theta1, theta2 and theta3.
 
-![alt text][image2]
+![alt text][image6]
 
-theta1 is simply arctan of wrist center x, and y position cast onto the x-y plane
+theta1 is simply arctan of wrist center x, and y position cast onto the x-y plane.
 theta2 = pi/2 - angle_a - angle_gamma (gamma), and gamma can be calculated with r and l. 
-r = length of wc cast on x-y plane minus a1
-l = height of wc minus d1
-angle a, b, c can be calculated with consine law
-theta3 = pi/2 - b - angle_phi (angle of wrist center relative to link3 at zero position, this is caused by the drop of -0.054 from O3 to O4)
+r = length of wc cast on x-y plane minus a1.
+l = height of wc minus d1.
+angle a, b, c can be calculated with consine law.
+theta3 = pi/2 - b - angle_phi (angle of wrist center relative to link3 at zero position, this is caused by the drop of -0.054 from O3 to O4).
 
 2. Second, we will solve the inverse orientation subproblem.
 
-By far we know the total transform from base_link to gripper link,  and have calculated theta1-3
-Therefore, we can extract the rotation matrix of R0_G and R0_3, and derive R3_G which contains theta4-6
+By far we know the total transform from base_link to gripper link,  and have calculated theta1-3.
+Therefore, we can extract the rotation matrix of R0_G and R0_3, and derive R3_G which contains theta4-6.
 
 	R0_G = Rrpy
 	R0_3 = T0_3[0:3,0:3]
         R0_3 = R0_3.evalf(subs = {q1:theta1, q2:theta2, q3:theta3})
         R3_G = R0_3.inv(method = "LU") * Rrpy
 	
-According to the euler angles trasformation matrix, we can calculate theta4-6
+According to the euler angles trasformation matrix, we can calculate theta4-6.
 
-![alt text][image2]
+![alt text][image7]
 
         theta4 = atan2(E3_G[2,2],-E3_G[0,2]) 
         theta5 = atan2(sqrt(E3_G[0,2] * E3_G[0,2] + E3_G[2,2] * E3_G[2,2]),E3_G[1,2]) 
@@ -185,15 +183,31 @@ According to the euler angles trasformation matrix, we can calculate theta4-6
 
 Here I'll talk about the code, what techniques I used, what worked and why, where the implementation might fail and how I might improve it if I were going to pursue this project further.  
 
-Techniques applied for improve performance:
-First, I used simpified math for calculating theta1-3, instead of calculating the internal variables which presents better understanding. The initial code are saved in comment but a direct value such as angle gamma and angle phi, cosine laws. This has a slight saving in calculation time and slight benefit for floating point rounding errors
-Second, I used matrix with symbols and dictionary instead of functions for T0_1, T1_2... and R_x, R_y, R_z. This has a slight saving in calculation time. 
-Third, I moved the calculations irrelavant to the for loop outside of for loop. This has a big saving on robot response time in Gazebo
-Fourth, I have applied tricks to keep the theta angles within joint limits according to URDF file, as much as possible. This is a huge performance improvement as it improves accuracy of path planning in multiple ways: it makes the movement flow steady and fast, it saves extra path planning due to truncated angles, it saves loss from truncated angle movements. And from the message stream I see very few of 'joint constraint limit' warnings compared to a lot before this technique is applied. Specifically, for theta2 and theta3, I keep the angles they need to subtract within certain limits so that theta2 and theta3 can stay in the joint limits. And for theta1, theta5, I keep the angles in (-pi,pi) range.
+Techniques applied that improved performance:
+First, I used simpified math for calculating theta1-3, instead of calculating internal variables such and r and l. The internal variables can be found in comment, as angle gamma and angle phi, etc. This has a slight saving in compute time and slight reduction in floating point rounding errors.
+Second, I used Sympy matrices to define T0_1, T1_2... and R_x, R_y, R_z, instead of using functions. This has a slight saving in compute time. 
+Third, I moved the calculations irrelavant to the for-loop outside. This has a big improvement on robot response time in Gazebo.
+Fourth, I have applied tricks to keep the theta angles within joint limits according to the URDF file as much as possible. This improves path planning and execution in a few ways: it makes the robot arm movement steadier and faster; it saves extra path planning due to truncated angles; it saves loss from constrained movements. From the message stream, I see very few 'joint constraint limit' warnings compared to a lot before this technique is applied. Specifically, for theta2 and theta3, I keep the angles within joint limits by keeping the angles they need to substract within certain limits utilizing trignomotry. And for theta1, theta5, I keep the angles in (-pi,pi) range.
+Fifth, I used extra decimal places for certain pre-calculated floating point values, such as angle phi (the WC drop angle from O3), this has improved precision in end effector pose.
 
-With the above improvements, the robot arm is able to path plan quickly with very few moves and pick up the objects with precision and speed.
+Techniques tried and failed to improve performance:
+I tried to use np.array to do matrix calculation, but couldn't get it to work for two reasons: 1, the precision seems to be awlful even when I specify the data type to be float32, the WC alone is off by 0.2 on average, and I get NaN values for theta4-6; 2, since I need to substitute the thetas in the Sympy matrix, I need to convert the sympy matrix to np array, or vice versa. I tried multiple ways but none seem to work and give me a rather large error.
+I tried to set a tolerance value so that if newly received gripper position and euler angles are within tolerance from last state, then skip the IK calculation. I noticed that with this I get a larger list of poses (from ~20 tp ~100) from the path planner, therefore, I crossed this off. 
+
+Results: 
+Robot arm is able to move relatively steady, but slowy(compared to the demo), to perform the tasks.
+I've individually set the target to spawn from 1 to 9, and all locations passed with the arm picking up and dropping off as expected.
+However, when I set the target spawn parameter to 0, and give it a run, some locations fails. I couldn't figure out whether this is due to that the robot moved slightly from time to time, or some other covariance that is affecting the end-effector position from one run to another. This may also be the cause to the demo's failure to pick up position 6 after some moves.
+
+Other Observations: 
+Sometimes the robot arm couldn't adjust to the best position to grasp object, and there seems to be a timeout, so the robot arm goes on to execute the grasp command in whatever position the gripper is in thus hitting down the object.
+
 
 Here's an image showing the robot arm in motion:
-![alt text][image3]
+![alt text][image8]
 
+Future improvement: 
+1. improve the speed of execution
+2. figure out the correlation problem between consecutive pickup and drop moves
+3. figure out the 'deadlock' situation where the robot arm couldn't adjust to the best position and keeps going through the same set of angles over and over.
 
